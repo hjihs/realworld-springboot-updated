@@ -1,6 +1,8 @@
 package org.example.springrealworld.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
@@ -8,6 +10,8 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "users")
 public class User {
 
@@ -26,8 +30,9 @@ public class User {
     private String username;
 
     @Column(length = 200)
-    private String imageUrl;
+    private String image;
 
+    @Getter
     @Column(length = 200, nullable = false)
     private String password;
 
@@ -39,4 +44,5 @@ public class User {
     private Set<User> following;
 
     // Constructors, Getters, and Setters
+
 }
