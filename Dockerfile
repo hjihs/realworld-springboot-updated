@@ -5,6 +5,7 @@ FROM eclipse-temurin:21-jdk-alpine
 VOLUME /tmp
 ARG JAR_FILE
 COPY ${JAR_FILE} app.jar
+RUN pwd
 
 RUN mkdir -p /src/main/resources/; \
     cp /etc/secrets/application.yml /src/main/resources/application.yml; \
