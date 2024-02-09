@@ -2,10 +2,7 @@ package org.example.springrealworld.controller.user;
 
 import lombok.RequiredArgsConstructor;
 import org.example.springrealworld.config.TokenUtil;
-import org.example.springrealworld.controller.user.dto.LoginRequestDTO;
-import org.example.springrealworld.controller.user.dto.LoginResponseDTO;
-import org.example.springrealworld.controller.user.dto.RegisterRequestDTO;
-import org.example.springrealworld.controller.user.dto.RegisterResponseDTO;
+import org.example.springrealworld.controller.user.dto.*;
 import org.example.springrealworld.exception.GenericErrorModel;
 import org.example.springrealworld.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +14,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -66,5 +65,67 @@ public class UserController {
         } catch (IllegalArgumentException e) {
             return GenericErrorModel.handleExceptions(e.getMessage());
         }
+    }
+
+
+    /**
+     * GET /user : Get current user
+     * Gets the currently logged-in user
+     *
+     * @return User (status code 200)
+     * or Unauthorized (status code 401)
+     * or Unexpected error (status code 422)
+     */
+    @Operation(operationId = "getCurrentUser", summary = "Get current user", description = "Gets the currently logged-in user", tags = {"User and Authentication"}, responses = {@ApiResponse(responseCode = "200", description = "User", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))}), @ApiResponse(responseCode = "401", description = "Unauthorized"), @ApiResponse(responseCode = "422", description = "Unexpected error", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = GenericErrorModel.class))})}, security = {@SecurityRequirement(name = "Token")})
+    @GetMapping("/user")
+    public ResponseEntity<?> getCurrentUser() {
+        Jwt principal = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userEmail = principal.getClaim("email");
+        try {
+            var user = userService.findUserByEmail(userEmail);
+            return ResponseEntity.ok().body(UserDTO.builder().email(user.getEmail()).username(user.getUsername()).bio(user.getBio()).image(user.getImage()).build());
+        } catch (IllegalArgumentException e) {
+            return GenericErrorModel.handleExceptions(e.getMessage());
+        }
+    }
+    /**
+     * PUT /user : Update current user
+     * Updated user information for current user
+     *
+     * @param body User details to update. At least **one** field is required. (required)
+     * @return User (status code 200)
+     * or Unauthorized (status code 401)
+     * or Unexpected error (status code 422)
+     */
+    @Operation(
+            operationId = "updateCurrentUser",
+            summary = "Update current user",
+            description = "Updated user information for current user",
+            tags = {"User and Authentication"},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User", content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))
+                    }),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "422", description = "Unexpected error", content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = GenericErrorModel.class))
+                    })
+            },
+            security = {
+                    @SecurityRequirement(name = "Token")
+            }
+    )
+    @PutMapping("/user")
+    public ResponseEntity<?> updateCurrentUser(@Valid @RequestBody UpdateUserRequestDTO body) {
+        Jwt principal = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String userEmail = principal.getClaim("email");
+        try {
+            var user = userService.updateUser(userEmail, body.getUsername(), body.getBio(), body.getImage());
+            return ResponseEntity.ok().body(UserDTO.builder().email(user.getEmail()).username(user.getUsername()).bio(user.getBio()).image(user.getImage()).build());
+        } catch (IllegalArgumentException e) {
+            return GenericErrorModel.handleExceptions(e.getMessage());
+        }
+
+//        TODO: Implement logic
     }
 }

@@ -1,0 +1,31 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  jackson:
+    deserialization:
+      unwrap-root-value: true
+
+Server:
+  servlet:
+    context-path: /api
+
+jwt:
+  public:
+    key: classpath:public.pem
+  private:
+    key: classpath:private.pem
+  expiration:
+    seconds: 86400
+  refresh:
+    seconds: 43200
+  token:
+    prefix: Token
+    header: Authorization
